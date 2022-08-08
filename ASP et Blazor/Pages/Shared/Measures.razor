@@ -1,0 +1,104 @@
+﻿@page "/Measures"
+@using Microsoft.AspNetCore.Components.Web.Virtualization
+@using System.Globalization
+@using static Newtonsoft.Json.JsonConvert
+@using static Holo_Recipe.Recipe
+@using static System.Net.WebRequest
+@using static System.Net.HttpWebRequest
+<h3>Pieces measurement table</h3>
+
+<button @onclick="Toggle">Fetch measures</button>
+@if (MeasuredPieces == null)
+{
+    <p><em>Empty list</em></p>
+}
+else
+{
+    <style>
+        td {
+            border: solid 1px #000;
+        }
+    </style>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Piece name</th>
+                <th>ID</th>
+                <th>Operator</th>
+                <th>Start date</th>
+                <th>End date</th>
+                <th width="90%">Cotation</th>
+            </tr>
+        </thead>
+        <tbody>
+            <Virtualize Items="MeasuredPieces" Context="Piece">
+                <tr>
+                    <td>@Piece.PieceName</td>
+                    <td>@Piece.Id</td>
+                    <td>@Piece.OperatorName</td>
+                    <td>@Piece.StartDate</td>
+                    <td>@Piece.EndDate</td>
+                    <td width="90%">
+                        <table width="100%">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Type</th>
+                                    <th>Expected [mm]</th>
+                                    <th>Measured [mm]</th>
+                                    <th>Result</th>
+                                </tr>
+                            </thead>
+                            <Virtualize Items="@Piece.CotationList" Context="Cotation">
+                                <tr>
+                                    <style>
+                                        td {
+                                            border: solid 0px #000;
+                                        }
+                                    </style>
+                                    <td>@Cotation.Id</td>
+                                    <td>@Cotation.Type</td>
+                                    <td>@Cotation.ExpectedValue.ToString(CultureInfo.InvariantCulture) ± @Cotation.Tolerance.ToString(CultureInfo.InvariantCulture)</td>
+                                    <td>@Cotation.MeasuredValue.ToString(CultureInfo.InvariantCulture)</td>
+
+                                    @if (@Cotation.Result)
+                                {
+                                    <td bgcolor="#b0d6b3">
+                                        OK
+                                    </td>
+                                }
+                                else
+                                {
+                                    <td bgcolor="#c7918f">
+                                        NOK
+                                    </td>
+                                }
+                            </tr>
+                        </Virtualize>
+                    </table>
+
+                </td>
+            </tr>
+        </Virtualize>
+    </tbody>
+</table>
+}
+
+@code {
+    public string? JsonString { get; set; }
+    private List<MeasuredPiece>? MeasuredPieces;
+    protected async Task Toggle()
+    {
+        var url = "http://127.0.0.1:5114/api/AR/GetMesuredPieces";
+        //Has to be "System.Net.WebRequest..." or it won't compile event though Intellisense says it's ok
+        var httpRequest = (System.Net.HttpWebRequest)System.Net.WebRequest.Create(url);
+        using (System.Net.WebResponse myResponse = await httpRequest.GetResponseAsync())
+        {
+            using (StreamReader sr = new StreamReader(myResponse.GetResponseStream(), System.Text.Encoding.UTF8))
+            {
+                JsonString = sr.ReadToEnd();
+                MeasuredPieces = DeserializeObject<List<MeasuredPiece>>(JsonString)!;
+            }
+        }
+    }
+}
