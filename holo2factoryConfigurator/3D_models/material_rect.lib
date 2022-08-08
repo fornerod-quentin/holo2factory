@@ -1,0 +1,13 @@
+# Aspose.3D Wavefront OBJ Exporter
+# Copyright 2004-2022 Aspose Pty Ltd.
+# File created: 07/08/2022 12:14:22
+
+newmtl color
+	Ka 0 0 0
+	Kd 0.5 0.5 0.5
+	d 1
+	Tr 0
+	illum 2
+	Ks 0.2 0.2 0.2
+	Ns 0.5
+	map_Kd C:\Users\qforn\Desktop\TB\3D\FBX\Basic Wood.jpg
